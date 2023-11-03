@@ -24,10 +24,9 @@ const getPublishUrl = (
 
 	// Encode the path using encodeURIComponent to escape special characters,
 	// then replace encoded spaces with a plus sign
-	const encodedPath = encodeURIComponent(pathWithoutExtension).replace(
-		/%20/g,
-		"+"
-	);
+	const encodedPath = encodeURIComponent(pathWithoutExtension)
+		.replace(/%20/g, "+")
+		.replace(/%2F/g, "/");
 
 	return `https://${publishDomain}/${encodedPath}`;
 };
