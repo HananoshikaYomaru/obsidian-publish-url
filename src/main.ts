@@ -1,107 +1,136 @@
 import {
 	App,
-	Editor,
 	EventRef,
-	MarkdownView,
-	Modal,
 	Notice,
 	Plugin,
 	PluginSettingTab,
 	Setting,
+	TFile,
 } from "obsidian";
 import "@total-typescript/ts-reset";
 import "@total-typescript/ts-reset/dom";
-import { MySettingManager } from "@/SettingManager";
+import { DEFAULT_SETTING, MySettingManager } from "@/SettingManager";
 
-// Remember to rename these classes and interfaces!
+import { NoticeManager } from "@/NoticeManager";
 
-interface MyPluginSettings {
-	mySetting: string;
-}
+const getPublishUrl = (
+	path: string,
+	publishDomain: string,
+	permalink?: string
+) => {
+	if (permalink) return `https://${publishDomain}/${permalink}`;
+	// Remove the .md extension from the path
+	const pathWithoutExtension = path.replace(/\.md$/, "");
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: "default",
+	// Encode the path using encodeURIComponent to escape special characters,
+	// then replace encoded spaces with a plus sign
+	const encodedPath = encodeURIComponent(pathWithoutExtension).replace(
+		/%20/g,
+		"+"
+	);
+
+	return `https://${publishDomain}/${encodedPath}`;
 };
 
-export default class MyPlugin extends Plugin {
+export function isMarkdownFile(file: TFile) {
+	return file && file.extension === "md";
+}
+
+export default class PublishUrlSetting extends Plugin {
 	settingManager: MySettingManager;
+	noticeManager: NoticeManager;
 	private eventRefs: EventRef[] = [];
 
 	async onload() {
+		const that = this;
 		// initialize the setting manager
 		this.settingManager = new MySettingManager(this);
+		this.noticeManager = new NoticeManager(this);
 
 		// load the setting using setting manager
 		await this.settingManager.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
-			"Sample Plugin",
-			(evt: MouseEvent) => {
-				// Called when the user clicks the icon.
-				new Notice("This is a notice!");
-			}
-		);
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass("my-plugin-ribbon-class");
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText("Status Bar Text");
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: "open-sample-modal-simple",
-			name: "Open sample modal (simple)",
-			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: "sample-editor-command",
-			name: "Sample editor command",
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection("Sample Editor Command");
-			},
-		});
 		// This adds a complex command that can check whether the current state of the app allows execution of the command
 		this.addCommand({
-			id: "open-sample-modal-complex",
-			name: "Open sample modal (complex)",
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
+			id: "copy-publish-url",
+			name: "Copy publish url",
+			editorCheckCallback(checking, editor, ctx) {
+				if (!ctx.file) return;
+				if (checking) {
+					return isMarkdownFile(ctx.file);
 				}
+				const publishUrl = that.copyPublishUrl(ctx.file);
+				// copy this to clipboard
+				navigator.clipboard.writeText(publishUrl);
+				that.createNotice("Copied publish url to clipboard");
+			},
+		});
+
+		this.addCommand({
+			id: "copy-theog-url",
+			name: "Copy theog url",
+			editorCheckCallback(checking, editor, ctx) {
+				if (!ctx.file) return;
+				if (checking) {
+					return isMarkdownFile(ctx.file);
+				}
+				// get the publish url
+				const publishUrl = that.copyPublishUrl(ctx.file);
+				const theogUrl = that.copyTheogUrl(
+					publishUrl,
+					that.settingManager.getSettings().theogTemplate
+				);
+				// copy this to clipboard
+				navigator.clipboard.writeText(theogUrl);
+				that.createNotice("Copied theog url to clipboard");
+			},
+		});
+
+		this.addCommand({
+			id: "open-in-publish",
+			name: "Open in publish",
+			editorCheckCallback(checking, editor, ctx) {
+				if (!ctx.file) return;
+				if (checking) {
+					return isMarkdownFile(ctx.file);
+				}
+				// get the publish url
+				const publishUrl = that.copyPublishUrl(ctx.file);
+				// open in default browser
+				window.open(publishUrl, "_blank");
 			},
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new SettingTab(this.app, this));
+	}
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-			console.log("click", evt);
+	copyPublishUrl = (file: TFile) => {
+		const path = file.path;
+		// get the frontmatter of the current file
+		const frontmatter =
+			this.app.metadataCache.getFileCache(file)?.frontmatter;
+		const publishDomain = this.settingManager.getSettings().publishDomain;
+		const permalink = frontmatter?.permalink;
+		const publishUrl = getPublishUrl(path, publishDomain, permalink);
+		return publishUrl;
+	};
+
+	copyTheogUrl = (url: string, template: number) => {
+		// Construct the new URL with query parameters
+		const theogBaseUrl = "https://theog.io/goto";
+		const queryParams = new URLSearchParams({
+			url: url,
+			template: template.toString(),
 		});
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
-		);
-	}
+		return `${theogBaseUrl}?${queryParams.toString()}`;
+	};
+
+	createNotice = (
+		message: string | DocumentFragment,
+		duration?: number | undefined
+	): Notice => this.noticeManager.createNotice(message, duration);
 
 	onunload() {
 		super.onunload();
@@ -112,26 +141,10 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+class SettingTab extends PluginSettingTab {
+	plugin: PublishUrlSetting;
 
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText("Woah!");
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: PublishUrlSetting) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -141,18 +154,31 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		new Setting(containerEl)
-			.setName("Setting #1")
-			.setDesc("It's a secret")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your secret")
-					.setValue(this.plugin.settingManager.getSettings().test)
-					.onChange(async (value) => {
-						this.plugin.settingManager.updateSettings((setting) => {
-							setting.value.test = value;
-						});
-					})
-			);
+		new Setting(containerEl).setName("Publish domain").addText((text) =>
+			text
+				.setPlaceholder("Your publish domain")
+				.setValue(
+					this.plugin.settingManager.getSettings().publishDomain
+				)
+				.onChange(async (value) => {
+					this.plugin.settingManager.updateSettings((setting) => {
+						setting.value.publishDomain = value;
+					});
+				})
+		);
+
+		new Setting(containerEl).setName("Template Number").addText((text) => {
+			text.setPlaceholder(String(DEFAULT_SETTING.theogTemplate))
+				.setValue(
+					String(
+						this.plugin.settingManager.getSettings().theogTemplate
+					)
+				)
+				.onChange(async (value) => {
+					this.plugin.settingManager.updateSettings((setting) => {
+						setting.value.theogTemplate = Number(value);
+					});
+				});
+		});
 	}
 }

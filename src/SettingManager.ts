@@ -1,9 +1,8 @@
 import { ISettingManager } from "@/Interfaces";
 import { AsyncQueue } from "@/util/AsyncQueue";
 import { SettingSchema } from "@/SettingsSchemas";
-import { createNotice } from "@/util/createNotice";
 import { State } from "@/util/State";
-import { Plugin } from "obsidian";
+import { Plugin } from "@/Interfaces";
 import { z } from "zod";
 
 // the setting of slider
@@ -14,37 +13,7 @@ export const nodeSize = {
 	default: 3,
 };
 
-// export type BaseFilterSettings = Prettify<
-// 	z.TypeOf<typeof BaseFilterSettingsSchema>
-// >;
-
-// export type LocalFilterSetting = Prettify<
-// 	z.TypeOf<typeof LocalFilterSettingSchema>
-// >;
-
-// export type GroupSettings = Prettify<z.TypeOf<typeof GroupSettingsSchema>>;
-
-// export type BaseDisplaySettings = Prettify<
-// 	z.TypeOf<typeof BaseDisplaySettingsSchema>
-// >;
-
-// export type LocalDisplaySettings = Prettify<
-// 	z.TypeOf<typeof LocalDisplaySettingsSchema>
-// >;
-
-// export type GlobalGraphSettings = Prettify<
-// 	z.TypeOf<typeof GlobalGraphSettingsSchema>
-// >;
-
-// export type LocalGraphSettings = Prettify<
-// 	z.TypeOf<typeof LocalGraphSettingsSchema>
-// >;
-
-// export type SavedSetting = Prettify<z.TypeOf<typeof SavedSettingSchema>>;
-
 export type Setting = Prettify<z.TypeOf<typeof SettingSchema>>;
-
-// export type GraphSetting = Exclude<SavedSetting["setting"], undefined>;
 
 const corruptedMessage =
 	"The setting is corrupted. You will not be able to save the setting. Please backup your data.json, remove it and reload the plugin. Then migrate your old setting back.";
@@ -108,7 +77,7 @@ export class MySettingManager implements ISettingManager<Setting> {
 		const result = SettingSchema.safeParse(loadedData);
 		// the data schema is wrong or the data is corrupted, then we need to initialize the data
 		if (!result.success) {
-			createNotice(corruptedMessage);
+			this.plugin.createNotice(corruptedMessage);
 			console.warn("parsed loaded data failed", result.error.flatten());
 			this.isLoaded = false;
 			this.setting.value = DEFAULT_SETTING;
@@ -130,7 +99,7 @@ export class MySettingManager implements ISettingManager<Setting> {
 			const result = SettingSchema.safeParse(this.setting.value);
 
 			if (!result.success) {
-				createNotice(corruptedMessage);
+				this.plugin.createNotice(corruptedMessage);
 				console.warn(
 					"parsed loaded data failed",
 					result.error.flatten()
@@ -146,5 +115,6 @@ export class MySettingManager implements ISettingManager<Setting> {
 }
 
 export const DEFAULT_SETTING: Setting = {
-	test: "test",
+	publishDomain: "",
+	theogTemplate: 3,
 };
