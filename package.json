@@ -1,6 +1,6 @@
 {
   "name": "obsidian-publish-url",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Get the publish url",
   "main": "main.js",
   "scripts": {
