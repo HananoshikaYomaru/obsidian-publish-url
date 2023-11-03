@@ -1,7 +1,7 @@
 {
 	"id": "publish-url",
 	"name": "Publish url",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"minAppVersion": "0.15.0",
 	"description": "Obsidian Publish url to the clipboard",
 	"author": "Hananoshika Yomaru",
