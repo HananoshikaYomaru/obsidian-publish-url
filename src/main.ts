@@ -1,6 +1,7 @@
 import {
 	App,
 	EventRef,
+	MarkdownView,
 	Notice,
 	Plugin,
 	PluginSettingTab,
@@ -53,12 +54,20 @@ export default class PublishUrlSetting extends Plugin {
 		this.addCommand({
 			id: "copy-publish-url",
 			name: "Copy publish url",
-			editorCheckCallback(checking, editor, ctx) {
-				if (!ctx.file) return;
+			checkCallback(checking) {
+				const activeLeaf =
+					that.app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeLeaf) return;
+
+				// now must be markdown view
+				// get the current file
+				const file = activeLeaf.file;
+
+				if (!file) return;
 				if (checking) {
-					return isMarkdownFile(ctx.file);
+					return isMarkdownFile(file);
 				}
-				const publishUrl = that.copyPublishUrl(ctx.file);
+				const publishUrl = that.copyPublishUrl(file);
 				// copy this to clipboard
 				navigator.clipboard.writeText(publishUrl);
 				that.createNotice("Copied publish url to clipboard");
@@ -68,13 +77,22 @@ export default class PublishUrlSetting extends Plugin {
 		this.addCommand({
 			id: "copy-theog-url",
 			name: "Copy theog url",
-			editorCheckCallback(checking, editor, ctx) {
-				if (!ctx.file) return;
+			checkCallback(checking) {
+				const activeLeaf =
+					that.app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeLeaf) return;
+
+				// now must be markdown view
+				// get the current file
+				const file = activeLeaf.file;
+
+				if (!file) return;
 				if (checking) {
-					return isMarkdownFile(ctx.file);
+					return isMarkdownFile(file);
 				}
+
 				// get the publish url
-				const publishUrl = that.copyPublishUrl(ctx.file);
+				const publishUrl = that.copyPublishUrl(file);
 				const theogUrl = that.copyTheogUrl(
 					publishUrl,
 					that.settingManager.getSettings().theogTemplate
@@ -88,13 +106,22 @@ export default class PublishUrlSetting extends Plugin {
 		this.addCommand({
 			id: "open-in-publish",
 			name: "Open in publish",
-			editorCheckCallback(checking, editor, ctx) {
-				if (!ctx.file) return;
+			checkCallback(checking) {
+				const activeLeaf =
+					that.app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeLeaf) return;
+
+				// now must be markdown view
+				// get the current file
+				const file = activeLeaf.file;
+
+				if (!file) return;
 				if (checking) {
-					return isMarkdownFile(ctx.file);
+					return isMarkdownFile(file);
 				}
+
 				// get the publish url
-				const publishUrl = that.copyPublishUrl(ctx.file);
+				const publishUrl = that.copyPublishUrl(file);
 				// open in default browser
 				window.open(publishUrl, "_blank");
 			},
