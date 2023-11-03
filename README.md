@@ -15,7 +15,7 @@ Demo:
 
 ### Through obsidian community plugin
 
-waiting for approval:
+waiting for approval: https://github.com/obsidianmd/obsidian-releases/pull/2634
 
 ### Through BRAT
 
