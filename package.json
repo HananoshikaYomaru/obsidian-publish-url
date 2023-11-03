@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "obsidian-publish-url",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Get the publish url",
 	"main": "main.js",
 	"scripts": {
 		"dev": "bun esbuild.config.mjs",
@@ -11,8 +11,12 @@
 		"prepare": "husky install",
 		"release": "bash ./release.sh"
 	},
-	"keywords": [],
-	"author": "",
+	"keywords": [
+		"obsidian",
+		"publish",
+		"obsidian plugin"
+	],
+	"author": "Hananoshika Yomaru",
 	"license": "MIT",
 	"devDependencies": {
 		"@total-typescript/ts-reset": "^0.5.1",
