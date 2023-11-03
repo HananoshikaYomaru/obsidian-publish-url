@@ -119,12 +119,8 @@ export default class PublishUrlSetting extends Plugin {
 	copyTheogUrl = (url: string, template: number) => {
 		// Construct the new URL with query parameters
 		const theogBaseUrl = "https://theog.io/goto";
-		const queryParams = new URLSearchParams({
-			url: url,
-			template: template.toString(),
-		});
 
-		return `${theogBaseUrl}?${queryParams.toString()}`;
+		return `${theogBaseUrl}?url=${url}&template=${template}`;
 	};
 
 	createNotice = (
