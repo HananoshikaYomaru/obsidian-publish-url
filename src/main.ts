@@ -189,18 +189,22 @@ class SettingTab extends PluginSettingTab {
 				})
 		);
 
-		new Setting(containerEl).setName("Template Number").addText((text) => {
-			text.setPlaceholder(String(DEFAULT_SETTING.theogTemplate))
-				.setValue(
-					String(
-						this.plugin.settingManager.getSettings().theogTemplate
+		new Setting(containerEl)
+			.setName("Template number")
+			.setDesc("The template number of theog.io")
+			.addText((text) => {
+				text.setPlaceholder(String(DEFAULT_SETTING.theogTemplate))
+					.setValue(
+						String(
+							this.plugin.settingManager.getSettings()
+								.theogTemplate
+						)
 					)
-				)
-				.onChange(async (value) => {
-					this.plugin.settingManager.updateSettings((setting) => {
-						setting.value.theogTemplate = Number(value);
+					.onChange(async (value) => {
+						this.plugin.settingManager.updateSettings((setting) => {
+							setting.value.theogTemplate = Number(value);
+						});
 					});
-				});
-		});
+			});
 	}
 }

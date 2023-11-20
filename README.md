@@ -2,7 +2,7 @@
 
 This plugin helps you to copy and open your publish url quickly.
 
-Demo: https://www.youtube.com/watch?v=llvFwdJP2dI&t=11s
+Demo: <https://www.youtube.com/watch?v=llvFwdJP2dI&t=11s>
 
 ## Features
 
@@ -15,7 +15,7 @@ Demo: https://www.youtube.com/watch?v=llvFwdJP2dI&t=11s
 
 ### Through obsidian community plugin
 
-waiting for approval: https://github.com/obsidianmd/obsidian-releases/pull/2634
+waiting for approval: <https://github.com/obsidianmd/obsidian-releases/pull/2634>
 
 ### Through BRAT
 
@@ -29,6 +29,10 @@ waiting for approval: https://github.com/obsidianmd/obsidian-releases/pull/2634
 2. git clone this repo
 3. cd obsidian-3d-graph && bun install && bun run build
 4. there you go 🎉
+
+## Notes
+
+1. for the template number, you need to copy it from theog.io.
 
 ## Say thank you
 
