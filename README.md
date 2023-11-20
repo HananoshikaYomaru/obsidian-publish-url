@@ -2,7 +2,7 @@
 
 This plugin helps you to copy and open your publish url quickly.
 
-Demo:
+Demo: https://www.youtube.com/watch?v=llvFwdJP2dI&t=11s
 
 ## Features
 
