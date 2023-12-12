@@ -91,6 +91,20 @@ export default class PublishUrlSetting extends Plugin {
 					return isMarkdownFile(file);
 				}
 
+				// get the current note cover and description
+				// if the current note has no cover or description, show a warning notice
+				const frontmatter =
+					that.app.metadataCache.getFileCache(file)?.frontmatter;
+				const cover = frontmatter?.cover;
+				const description = frontmatter?.description;
+				if (!cover || !description) {
+					that.createNotice(
+						"Current note has no cover or description",
+						5000,
+						"warning"
+					);
+				}
+
 				// get the publish url
 				const publishUrl = that.copyPublishUrl(file);
 				const theogUrl = that.copyTheogUrl(
@@ -150,9 +164,8 @@ export default class PublishUrlSetting extends Plugin {
 	};
 
 	createNotice = (
-		message: string | DocumentFragment,
-		duration?: number | undefined
-	): Notice => this.noticeManager.createNotice(message, duration);
+		...props: Parameters<NoticeManager["createNotice"]>
+	): Notice => this.noticeManager.createNotice(...props);
 
 	onunload() {
 		super.onunload();
